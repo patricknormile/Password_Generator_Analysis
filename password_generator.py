@@ -167,19 +167,28 @@ A = Pwd()
 cmpl_dist = {}
 for i in range(50000):
     A.generate()
-    cmpl_dist.update({i : A.ntries})
+    cmpl_dist.update({i : [A.ntries, A.failreason]})
 
-df = pd.DataFrame.from_dict(data = cmpl_dist, orient='index', columns=['Tries'])
+df = pd.DataFrame.from_dict(data = cmpl_dist, orient='index', columns=['Tries', 'Fail Reason'])
 
 print(max(df['Tries']))
 
 print(df.groupby('Tries')['Tries'].agg('count'))
 lb = min(df['Tries'])
 ub = max(df['Tries'])
+#center histogram around integers
 bucks = np.arange(lb-0.5, ub+0.5, 1)
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(10,7))
 plt.hist(data = df, x = 'Tries', bins = bucks, normed=True)
+plt.title("No. tries until success")
 plt.show()
 
 df.groupby('Tries')['Tries'].agg('count').div(df.shape[0])
+
+#looks very much like exponential distribution
+plt.figure(figsize=(10,7))
+plt.hist(data = df, x = 'Tries', bins = bucks, normed=True, log=True)
+plt.title("No. tries until success")
+plt.show()
+
 
