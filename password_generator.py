@@ -23,6 +23,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import string
 import pandas as pd
+import collections
+import itertools as it
 
 
 class Setup():
@@ -241,4 +243,11 @@ ax.pie(cnts.values.flatten(), labels = cnts.index, autopct='%1.1f%%')
 ax.axis('equal')
 plt.show()
 
-df['Fail Reason'][0:20]
+# In[]:
+ls = [*df['Fail Reason'].values]
+mrgls = list(it.chain.from_iterable(ls))
+print(len(mrgls))
+
+inst = collections.Counter(mrgls)
+inst.items()
+
