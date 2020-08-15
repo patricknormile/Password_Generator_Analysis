@@ -1,3 +1,5 @@
+
+# In[]:
 """
 
 I created a password generator that generates a random password that has several features:
@@ -6,7 +8,7 @@ I created a password generator that generates a random password that has several
     uses uppercase and lowercase letters
     no special characters
     at least one number
-    no repeat characters
+    no repeat characters (same case)
     no character used more than twice
     when typed, will use at least 3 key strokes from each hand 
     
@@ -53,7 +55,7 @@ class Setup():
         #end of Setup class
 
 
-
+# In[]:
 """
 this class generates a password and lets you know how many tries it took, and which criteria weren't met when it failed
 """
@@ -141,7 +143,7 @@ class Pwd(Setup):
                 self.ntries = i
                 self.fails.append(test_pwd)
                 #keeps track if multiple criteria were not met
-                fr = '|'.join([str(i) for i,x in enumerate(all_check) if x == 0])
+                fr = ','.join([str(i) for i,x in enumerate(all_check) if x == 0])
                 self.failreason.append(fr)
                 
 
@@ -158,6 +160,7 @@ print(A.ntries)
 print(A.failreason)
 print(A.fails)
 
+# In[]:
 """
 
 See distribution of attempts needed to make a password
@@ -169,6 +172,7 @@ for i in range(50000):
     A.generate()
     cmpl_dist.update({i : [A.ntries, A.failreason]})
 
+# In[]:
 df = pd.DataFrame.from_dict(data = cmpl_dist, orient='index', columns=['Tries', 'Fail Reason'])
 
 print(max(df['Tries']))
@@ -179,16 +183,62 @@ ub = max(df['Tries'])
 #center histogram around integers
 bucks = np.arange(lb-0.5, ub+0.5, 1)
 plt.figure(figsize=(10,7))
-plt.hist(data = df, x = 'Tries', bins = bucks, normed=True)
+plt.hist(data = df, x = 'Tries', bins = bucks, density=True)
 plt.title("No. tries until success")
 plt.show()
 
-df.groupby('Tries')['Tries'].agg('count').div(df.shape[0])
-
+# In[]:
 #looks very much like exponential distribution
 plt.figure(figsize=(10,7))
-plt.hist(data = df, x = 'Tries', bins = bucks, normed=True, log=True)
-plt.title("No. tries until success")
+plt.hist(data = df, x = 'Tries', bins = bucks, density=True, log=True)
+plt.title("No. tries until success (log)")
 plt.show()
 
+dist = df.groupby('Tries')['Tries'].agg('count').div(df.shape[0])
+dist
+print(df['Tries'].mean())
 
+
+# In[]:
+print(dist)
+
+# probability 2 or more tries
+print(dist.loc[2:].sum())
+
+
+# In[]:
+"""
+fail reasons: 
+0 - no lowercase
+1 - no UPPERCASE
+2 - no numbers
+3 - char appears too often
+4 - starts with number
+5 - not enough L/R
+6 - repeated chars
+"""
+# count up how many failures from each
+F = df['Fail Reason']
+packstr = ''
+for i,v in F.items():
+    if v != []:
+        packstr = packstr  + ','.join(v) + ','
+#packstr
+
+# In[]:
+#count up how many by fail reason (keep in mind, could have multiple failures per iteration)
+upackstr = packstr[:-1].split(',')
+print(len(upackstr))
+errcnt = {}
+for i in range(7):
+    errcnt.update({i : upackstr.count(str(i))})
+cnts = pd.DataFrame.from_dict(data = errcnt, orient = 'index', columns = ['Count'])
+cnts.index = ['0 - no lowercase', '1 - no UPPERCASE', '2 - no numbers', '3 - char appears too often', 
+              '4 - starts with number', '5 - not enough L/R', '6 - repeated chars']
+print(cnts.div(len(upackstr)))
+_, ax = plt.subplots()
+ax.pie(cnts.values.flatten(), labels = cnts.index, autopct='%1.1f%%')
+ax.axis('equal')
+plt.show()
+
+df['Fail Reason'][0:20]
