@@ -92,7 +92,7 @@ class Pwd(Setup):
             LR = [list(self.lookup.values())[x][1] for x in test]
             n_lc = len([x for x in test if x < 26])
             n_UC = len([x for x in test if x >= 36])
-            n_N = len([x for x in test if x >= 26 & x < 36])
+            n_N = len([x for x in test if x >= 26 and x < 36])
             
             #check if you don't use the same character too many times
             ltest = [*test]
@@ -168,9 +168,10 @@ print(A.fails)
 See distribution of attempts needed to make a password
 
 """
+n = 50000
 A = Pwd()
 cmpl_dist = {}
-for i in range(50000):
+for i in range(n):
     A.generate()
     cmpl_dist.update({i : [A.ntries, A.failreason]})
 
@@ -199,8 +200,10 @@ plt.show()
 dist = df.groupby('Tries')['Tries'].agg('count').div(df.shape[0])
 dist
 print(df['Tries'].mean())
-
-
+#parameter estimate using MME
+# add in parameter estimate to graphs
+phat = n / (sum(df['Tries']))
+print(phat)
 # In[]:
 print(dist)
 
@@ -251,3 +254,35 @@ print(len(mrgls))
 inst = collections.Counter(mrgls)
 inst.items()
 
+# In[]:
+df1 = pd.DataFrame.from_dict(dict(inst.items()), orient='index', columns = ['Count']).reset_index()
+
+df1['no.errs'] = (df1['index'].str.len() + 1) / 2
+df1['has0'] = df1['index'].str.contains('0')
+df1['has1'] = df1['index'].str.contains('1')
+df1['has2'] = df1['index'].str.contains('2')
+df1['has3'] = df1['index'].str.contains('3')
+df1['has4'] = df1['index'].str.contains('4')
+df1['has5'] = df1['index'].str.contains('5')
+df1['has6'] = df1['index'].str.contains('6')
+
+df1.head()
+# In[]:
+# of instances with error code
+rng = list(range(7))
+cols = ['has' + str(x) for x in rng]
+nm = ['0 - no lowercase', '1 - no UPPERCASE', '2 - no numbers', '3 - char appears too often', 
+              '4 - starts with number', '5 - not enough L/R', '6 - repeated chars']
+for i in rng:
+    col = cols[i]
+    x = df1[[col,'Count']].groupby(by = col).agg('sum')['Count'] / df1['Count'].agg('sum')
+    print(nm[i], x)
+
+# In[]:
+# see how this compares to expectation
+# can see pretty similar
+# need to divide out 1-phat since above is probability given failure
+
+print(["No lcase: " ,(1-(26/(26+10+26)))**8 / (1-phat)])
+print(["No UCASE: " ,(1-(26/(26+10+26)))**8 / (1-phat)])
+print(["No numbers: " ,(1-(10/(26+10+26)))**8 / (1-phat)])
