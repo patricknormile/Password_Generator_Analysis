@@ -190,7 +190,7 @@ plt.title("No. tries until success")
 plt.show()
 
 # In[]:
-#looks very much like exponential distribution
+#looks very much like geometric distribution
 plt.figure(figsize=(10,7))
 plt.hist(data = df, x = 'Tries', bins = bucks, density=True, log=True)
 plt.title("No. tries until success (log)")
